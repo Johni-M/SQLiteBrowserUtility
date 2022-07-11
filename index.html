@@ -28,6 +28,7 @@
             <div class=''>
 
                 <input id='upload' type='file' />
+                Diensplan von ClinicPlanner importieren: <input id='upload_html' type='file' />
 
                 <hr class='invisible-divider'>
 
@@ -47,7 +48,7 @@
             callback();
         } else {
             document.addEventListener('DOMContentLoaded', async () => {
-                console.log('DOMContentLoaded');
+                //console.log('DOMContentLoaded');
 
                 if (!window.FileReader) {
                     errorDisplay.innerHTML = '⛔ WARNING: Your browser does not support HTML5 \'FileReader\' function required to open a file.';
@@ -135,7 +136,58 @@
                     }
                 }, false); // upload file change event
 
-                
+
+                document.getElementById('upload_html').addEventListener('change', importClinicPlanner)
+
+                function importClinicPlanner() {
+                    let files = this.files;
+                    if (files.length === 0) {
+                        console.log('No file is selected');
+                        return;
+                    }
+
+                    let reader = new FileReader();
+                    reader.readAsText(files[0], 'ISO-8859-1');
+
+                    reader.onload = function (event) {
+
+                        const parser = new DOMParser();
+                        const ClinicPlan = parser.parseFromString(event.target.result, "text/html");
+
+
+                        let table = ClinicPlan.getElementsByTagName('table')[0];
+                        
+                        // start reading on table row x
+                        const ClinicPlanRowStart = 2;
+                        // skip every x lines
+                        const ClinicPlanRowOffset = 4;
+
+                        let ClinicPlanName = "";
+                        let ClinicPlanFirstname = "";
+
+                        let Dienstplan = [];
+
+                        console.log("Anz. Mitarbeiter: " + (table.rows.length-ClinicPlanRowStart)/ClinicPlanRowOffset);
+
+                        for (let i = ClinicPlanRowStart, row; row = table.rows[i]; i+=ClinicPlanRowOffset) {
+
+                            ClinicPlanName = row.cells[0].innerText.trim();
+                            ClinicPlanFirstname = table.rows[i+1].cells[0].innerText.trim();
+                            
+                            console.log(ClinicPlanName + ", " + ClinicPlanFirstname);
+
+                            /*
+                            for (let j = 0, cell; cell = row.cells[j]; j++) {
+                                console.log(cell.innerText);
+                            }
+                            */
+                        }
+
+                    };
+
+                }
+
+                    
             }); // DOMContentLoaded
         }
     </script>
